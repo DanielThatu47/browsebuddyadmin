@@ -34,13 +34,17 @@
                 const scoreTable = document.getElementById('scoreTable');
                 for (const url in data) {
                     const row = document.createElement('tr');
+                    const { score, user, approved } = data[url];
+                    
                     row.innerHTML = `
                         <td class="py-3 px-4 border-b">${url}</td>
-                        <td class="py-3 px-4 border-b">${data[url].score}</td>
-                        <td class="py-3 px-4 border-b">${data[url].user}</td>
-                        <td class="py-3 px-4 border-b">${data[url].approved}</td>
+                        <td class="py-3 px-4 border-b">${score}</td>
+                        <td class="py-3 px-4 border-b">${user}</td>
+                        <td class="py-3 px-4 border-b">${approved ? 'Yes' : 'No'}</td>
                         <td class="py-3 px-4 border-b">
-                            <button onclick="approveScore('${url}')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Approve</button>
+                            <button onclick="approveScore('${url}')" class="${approved ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'} text-white font-bold py-2 px-4 rounded" ${approved ? 'disabled' : ''}>
+                                ${approved ? 'Approved' : 'Approve'}
+                            </button>
                         </td>
                     `;
                     scoreTable.appendChild(row);
