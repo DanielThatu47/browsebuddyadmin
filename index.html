@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Basic styling for the modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .modal.active {
+            display: flex;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <div class="container mx-auto p-6">
@@ -26,23 +51,38 @@
             </table>
         </div>
     </div>
+
+    <!-- Modal for confirmation -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Confirm Approval</h2>
+            <p class="mb-4">Are you sure you want to change the approval status of this score?</p>
+            <div class="flex justify-end">
+                <button id="confirmButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">Yes, Change</button>
+                <button id="cancelButton" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let urlToApprove = null;
+
         // Fetch scores and populate the table
         fetch('https://browsebuddy.onrender.com/api/scores')
             .then(response => response.json())
             .then(data => {
                 const scoreTable = document.getElementById('scoreTable');
                 for (const url in data) {
-                    const row = document.createElement('tr');
                     const { score, user, approved } = data[url];
                     
+                    const row = document.createElement('tr');
                     row.innerHTML = `
                         <td class="py-3 px-4 border-b">${url}</td>
                         <td class="py-3 px-4 border-b">${score}</td>
                         <td class="py-3 px-4 border-b">${user}</td>
                         <td class="py-3 px-4 border-b">${approved ? 'Yes' : 'No'}</td>
                         <td class="py-3 px-4 border-b">
-                            <button onclick="approveScore('${url}')" class="${approved ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'} text-white font-bold py-2 px-4 rounded" ${approved ? 'disabled' : ''}>
+                            <button onclick="showConfirmation('${url}')" class="${approved ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'} text-white font-bold py-2 px-4 rounded" ${approved ? 'disabled' : ''}>
                                 ${approved ? 'Approved' : 'Approve'}
                             </button>
                         </td>
@@ -50,6 +90,22 @@
                     scoreTable.appendChild(row);
                 }
             });
+
+        function showConfirmation(url) {
+            urlToApprove = url;
+            document.getElementById('confirmationModal').classList.add('active');
+        }
+
+        document.getElementById('confirmButton').addEventListener('click', () => {
+            if (urlToApprove) {
+                approveScore(urlToApprove);
+            }
+            document.getElementById('confirmationModal').classList.remove('active');
+        });
+
+        document.getElementById('cancelButton').addEventListener('click', () => {
+            document.getElementById('confirmationModal').classList.remove('active');
+        });
 
         function approveScore(url) {
             fetch('https://browsebuddy.onrender.com/api/approve', {
